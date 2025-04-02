@@ -18,7 +18,7 @@ ESP32-DuckyEngine is a lightweight **Ducky Script interpreter** for the ESP32 wi
 - **Make sure you can use the ESP32 with the Arduino IDE. Instructions can be found [here](https://docs.espressif.com/projects/arduino-esp32/en/latest/).**
 
 ### 2️⃣ Installation
-1. Download the latest [release](https://github.com/TriDEntApollO/ESP32-BLE-Keyboard-V2/releases) or download the [code](https://github.com/TriDEntApollO/ESP32-BLE-Keyboard-V2/archive/refs/heads/main.zip) as a ZIP file for latest commits.
+1. Download the latest [release](https://github.com/TriDEntApollO/EPS32-DuckyEngine/releases) or download the [code](https://github.com/TriDEntApollO/ESP32-BLE-Keyboard-V2/archive/refs/heads/main.zip) as a ZIP file for latest commits.
 2. In the Arduino IDE go to `"Sketch" -> "Include Library" -> "Add .ZIP Library..."` and select the `ZIP` file you just downloaded.
 3. Restart Arduino IDE to recognize the new library.
 4. You can now go to `"File" -> "Examples" -> "ESP32 DuckyEngine"` and select any of the examples to get started.
