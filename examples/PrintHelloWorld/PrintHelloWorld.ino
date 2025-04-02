@@ -1,6 +1,5 @@
 #include <BleKeyboard.h>
-
-#include "DuckyEngine.h"
+#include <DuckyEngine.h>
 
 
 BleKeyboard bleKeyboard("CronoDeck", "Trident Apollo", 100);
@@ -21,19 +20,23 @@ DELAY 500
 CTRL ALT DELETE
 DELAY 1000
 DOWN
+DELAY 200
 DOWN
+DELAY 200
 DOWN
 DELAY 200
 ENTER
 )rawliteral";
 
+void connect();
+
 void setup() {
     Serial.begin(115200);
 
     connect();
-    Serial.println("Executing Ducky Script...")
+    Serial.println("Executing Ducky Script...");
     macro.executeScript(duckyScript);
-    Serial.println("Executiion Finished!")
+    Serial.println("Executiion Finished!");
 }
 
 void loop() {
