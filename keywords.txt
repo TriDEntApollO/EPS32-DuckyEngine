@@ -1,0 +1,21 @@
+######################################
+# Syntax highlighting for DuckyEngine
+######################################
+
+# Class name (Highlight as Type)
+DuckyEngine	KEYWORD1
+
+# Public Functions (Highlight as Function)
+executeScript	KEYWORD2
+
+# Ducky Script Commands (Highlight as Reserved Keywords)
+STRING	KEYWORD2
+ECHO	KEYWORD2
+PRINT	KEYWORD2
+SEND	KEYWORD2
+DELAY	KEYWORD2
+INTERVAL	KEYWORD2
+PRESS	KEYWORD2
+RELEASE	KEYWORD2
+REM	KEYWORD2
+#	KEYWORD2
