@@ -65,25 +65,29 @@ DuckyEngine::DuckyEngine(BleKeyboard &bleKeyboard) : bleKeyboard(bleKeyboard), i
         {"KP_4", KEY_NUM_4}, {"KP_5", KEY_NUM_5}, {"KP_6", KEY_NUM_6},
         {"KP_7", KEY_NUM_7}, {"KP_8", KEY_NUM_8}, {"KP_9", KEY_NUM_9},
         {"KP_0", KEY_NUM_0}, {"KP_DOT", KEY_NUM_PERIOD},
-    
-        // Media keys
-        {"MEDIA_NEXT_TRACK", KEY_MEDIA_NEXT_TRACK},
-        {"MEDIA_PREVIOUS_TRACK", KEY_MEDIA_PREVIOUS_TRACK},
-        {"MEDIA_STOP", KEY_MEDIA_STOP},
-        {"MEDIA_PLAY_PAUSE", KEY_MEDIA_PLAY_PAUSE},
-        {"MEDIA_MUTE", KEY_MEDIA_MUTE},
-        {"MEDIA_VOLUME_UP", KEY_MEDIA_VOLUME_UP},
-        {"MEDIA_VOLUME_DOWN", KEY_MEDIA_VOLUME_DOWN},
-        {"MEDIA_WWW_HOME", KEY_MEDIA_WWW_HOME},
-        {"MEDIA_LOCAL_MACHINE_BROWSER", KEY_MEDIA_LOCAL_MACHINE_BROWSER},
-        {"MEDIA_CALCULATOR", KEY_MEDIA_CALCULATOR},
-        {"MEDIA_WWW_BOOKMARKS", KEY_MEDIA_WWW_BOOKMARKS},
-        {"MEDIA_WWW_SEARCH", KEY_MEDIA_WWW_SEARCH},
-        {"MEDIA_WWW_STOP", KEY_MEDIA_WWW_STOP},
-        {"MEDIA_WWW_BACK", KEY_MEDIA_WWW_BACK},
-        {"MEDIA_CONSUMER_CONTROL_CONFIGURATION", KEY_MEDIA_CONSUMER_CONTROL_CONFIGURATION},
-        {"MEDIA_EMAIL_READER", KEY_MEDIA_EMAIL_READER}
     };
+
+    // mediaKeyMap = {
+    //     // Media keys
+    //     {"MEDIA_PLAY", KEY_MEDIA_PLAY},
+    //     {"MEDIA_PAUSE", KEY_MEDIA_PAUSE},
+    //     {"MEDIA_STOP", KEY_MEDIA_STOP},
+    //     {"MEDIA_PLAY_PAUSE", KEY_MEDIA_PLAY_PAUSE},
+    //     {"MEDIA_NEXT_TRACK", KEY_MEDIA_NEXT_TRACK},
+    //     {"MEDIA_PREVIOUS_TRACK", KEY_MEDIA_PREVIOUS_TRACK},
+    //     {"MEDIA_MUTE", KEY_MEDIA_MUTE},
+    //     {"MEDIA_VOLUME_UP", KEY_MEDIA_VOLUME_UP},
+    //     {"MEDIA_VOLUME_DOWN", KEY_MEDIA_VOLUME_DOWN},
+    //     {"MEDIA_WWW_HOME", KEY_MEDIA_WWW_HOME},
+    //     {"MEDIA_LOCAL_MACHINE_BROWSER", KEY_MEDIA_LOCAL_MACHINE_BROWSER},
+    //     {"MEDIA_CALCULATOR", KEY_MEDIA_CALCULATOR},
+    //     {"MEDIA_WWW_BOOKMARKS", KEY_MEDIA_WWW_BOOKMARKS},
+    //     {"MEDIA_WWW_SEARCH", KEY_MEDIA_WWW_SEARCH},
+    //     {"MEDIA_WWW_STOP", KEY_MEDIA_WWW_STOP},
+    //     {"MEDIA_WWW_BACK", KEY_MEDIA_WWW_BACK},
+    //     {"MEDIA_CONSUMER_CONTROL_CONFIGURATION", KEY_MEDIA_CONSUMER_CONTROL_CONFIGURATION},
+    //     {"MEDIA_EMAIL_READER", KEY_MEDIA_EMAIL_READER}
+    // };
 }
 
 // Executes a given Ducky Script line by line
@@ -142,9 +146,9 @@ void DuckyEngine::processCommand(const std::string &line) {
     } 
     // Sends a single character keystroke
     else if (command == "SEND") {
-        uint8_t c;
-        if (ss >> c) {
-            sendKey(c); // Send the character as a key press
+        std::string key;
+        if (ss >> key) {
+            sendKey(key); // Send the character as a key press
         }
     } 
     // Handles delay (can be absolute or modify global delay interval)
@@ -178,7 +182,7 @@ void DuckyEngine::processCommand(const std::string &line) {
             if (isModifierKey(keyMap[command])) {
                 handleModifierCombo(command, ss); // Handle modifier combo
             } else {
-                sendKey(keyMap[command]); // Send the key press
+                sendKey(command); // Send the key press
             }
         } else {
             // Treat the entire line (including this word) as text to print
@@ -236,21 +240,22 @@ void DuckyEngine::handleModifierCombo(std::string key, std::istringstream &ss) {
 
 // Presses a key and adds it to the active key list
 void DuckyEngine::pressKey(const std::string &key, bool allowModifiers) {
+    // auto keyCode = getKey(key); // Get the key code from the map
     uint8_t keyCode;
-        if (keyMap.find(key) != keyMap.end()) {
-            keyCode = keyMap[key];
-        } else {
-            keyCode = key[0];
-        }
+    if (keyMap.find(key) != keyMap.end()) {
+        keyCode = keyMap[key];
+    } else {
+        keyCode = key[0];
+    }
 
-        // Store modifiers separately from regular keys
-        if (allowModifiers && isModifierKey(keyCode)) {
-            activeModifiers.push_back(keyCode);
-        } else {
-            activeKeys.push_back(keyCode);
-        }
+    // Store modifiers separately from regular keys
+    if (allowModifiers && isModifierKey(keyCode)) {
+        activeModifiers.push_back(keyCode);
+    } else {
+        activeKeys.push_back(keyCode);
+    }
 
-        bleKeyboard.press(keyCode); // Send key press
+    bleKeyboard.press(keyCode); // Send key press
 }
 
 // Releases a specific key or all keys if "ALL" is specified
@@ -260,6 +265,7 @@ void DuckyEngine::releaseKey(const std::string &key, bool allowModifiers) {
         return;
     }
 
+    // auto keyCode = getKey(key); // Get the key code from the map
     uint8_t keyCode;
     if (keyMap.find(key) != keyMap.end()) {
         keyCode = keyMap[key];
@@ -278,8 +284,31 @@ void DuckyEngine::releaseKey(const std::string &key, bool allowModifiers) {
 }
 
 // Sends a single character keystroke
-void DuckyEngine::sendKey(const uint8_t key) {
-    bleKeyboard.write(key);
+void DuckyEngine::sendKey(const std::string& key) {
+    // auto keyCode = getKey(key); // Get the key code from the map
+    uint8_t keyCode;
+    if (keyMap.find(key) != keyMap.end()) {
+        keyCode = keyMap[key];
+    } else {
+        keyCode = key[0];
+    }
+
+    bleKeyboard.write(keyCode);
+}
+
+std::variant<uint8_t, MediaKeyReport> DuckyEngine::getKey(const std::string& key) {
+    auto regularIt = keyMap.find(key);
+    if (regularIt != regularKeyMap.end()) {
+        return regularIt->second;
+    }
+
+    auto mediaIt = mediaKeyMap.find(key);
+    if (mediaIt != mediaKeyMap.end()) {
+        return mediaIt->second;
+    }
+
+    // Fallback: Return first character of the string as a normal key
+    return static_cast<uint8_t>(key.empty() ? 0 : key[0]);
 }
 
 // Types a string instantly
