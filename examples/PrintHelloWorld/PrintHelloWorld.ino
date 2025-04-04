@@ -2,7 +2,7 @@
 #include <DuckyEngine.h>
 
 
-BleKeyboard bleKeyboard("CronoDeck", "Trident Apollo", 100);
+BleKeyboard bleKeyboard("Ducky Board", "Trident Apollo", 100);
 DuckyEngine macro(bleKeyboard);
 
 const char* duckyScript = R"rawliteral(
@@ -13,17 +13,7 @@ PRINT "cmd"
 DELAY 200
 ENTER
 DELAY 2000
-PRINT "echo 'Hello World'"
-DELAY 200
-ENTER
-DELAY 500
-CTRL ALT DELETE
-DELAY 1000
-DOWN
-DELAY 200
-DOWN
-DELAY 200
-DOWN
+PRINT "echo 'Hello, World!'"
 DELAY 200
 ENTER
 )rawliteral";
