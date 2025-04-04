@@ -11,7 +11,7 @@ DuckyEngine::DuckyEngine(BleKeyboard &bleKeyboard) : bleKeyboard(bleKeyboard), i
         {"SPACE", ' '},
         {"BACKSPACE", KEY_BACKSPACE},
         {"DELETE", KEY_DELETE},
-
+    
         // Modifier keys
         {"CTRL", KEY_LEFT_CTRL},
         {"SHIFT", KEY_LEFT_SHIFT},
@@ -25,7 +25,7 @@ DuckyEngine::DuckyEngine(BleKeyboard &bleKeyboard) : bleKeyboard(bleKeyboard), i
         {"RIGHT_SHIFT", KEY_RIGHT_SHIFT},
         {"RIGHT_ALT", KEY_RIGHT_ALT},
         {"RIGHT_GUI", KEY_RIGHT_GUI},
-
+    
         // Navigation keys
         {"UP", KEY_UP_ARROW},
         {"DOWN", KEY_DOWN_ARROW},
@@ -36,7 +36,7 @@ DuckyEngine::DuckyEngine(BleKeyboard &bleKeyboard) : bleKeyboard(bleKeyboard), i
         {"END", KEY_END},
         {"PAGE_UP", KEY_PAGE_UP},
         {"PAGE_DOWN", KEY_PAGE_DOWN},
-
+    
         // Function keys
         {"F1", KEY_F1}, {"F2", KEY_F2}, {"F3", KEY_F3}, {"F4", KEY_F4},
         {"F5", KEY_F5}, {"F6", KEY_F6}, {"F7", KEY_F7}, {"F8", KEY_F8},
@@ -44,28 +44,28 @@ DuckyEngine::DuckyEngine(BleKeyboard &bleKeyboard) : bleKeyboard(bleKeyboard), i
         {"F13", KEY_F13}, {"F14", KEY_F14}, {"F15", KEY_F15}, {"F16", KEY_F16},
         {"F17", KEY_F17}, {"F18", KEY_F18}, {"F19", KEY_F19}, {"F20", KEY_F20},
         {"F21", KEY_F21}, {"F22", KEY_F22}, {"F23", KEY_F23}, {"F24", KEY_F24},
-
+    
         // Alphanumeric cluster
         {"CAPS_LOCK", KEY_CAPS_LOCK},
-        {"MENU", KEY_MENU},
-
+        {"MENU", 0xED},
+    
         // Function control cluster
-        {"PRINT_SCREEN", KEY_PRINT_SCREEN},
-        {"SCROLL_LOCK", KEY_SCROLL_LOCK},
-        {"PAUSE", KEY_PAUSE},
-
+        {"PRINT_SCREEN", KEY_PRTSC},
+        {"SCROLL_LOCK", 0xCF},
+        {"PAUSE", 0xD0},
+    
         // Keypad keys
-        {"NUM_LOCK", KEY_NUM_LOCK},
-        {"KP_SLASH", KEY_KP_SLASH},
-        {"KP_ASTERISK", KEY_KP_ASTERISK},
-        {"KP_MINUS", KEY_KP_MINUS},
-        {"KP_PLUS", KEY_KP_PLUS},
-        {"KP_ENTER", KEY_KP_ENTER},
-        {"KP_1", KEY_KP_1}, {"KP_2", KEY_KP_2}, {"KP_3", KEY_KP_3},
-        {"KP_4", KEY_KP_4}, {"KP_5", KEY_KP_5}, {"KP_6", KEY_KP_6},
-        {"KP_7", KEY_KP_7}, {"KP_8", KEY_KP_8}, {"KP_9", KEY_KP_9},
-        {"KP_0", KEY_KP_0}, {"KP_DOT", KEY_KP_DOT},
-
+        {"NUM_LOCK", 0xDB},
+        {"KP_SLASH", KEY_NUM_SLASH},
+        {"KP_ASTERISK", KEY_NUM_ASTERISK},
+        {"KP_MINUS", KEY_NUM_MINUS},
+        {"KP_PLUS", KEY_NUM_PLUS},
+        {"KP_ENTER", KEY_NUM_ENTER},
+        {"KP_1", KEY_NUM_1}, {"KP_2", KEY_NUM_2}, {"KP_3", KEY_NUM_3},
+        {"KP_4", KEY_NUM_4}, {"KP_5", KEY_NUM_5}, {"KP_6", KEY_NUM_6},
+        {"KP_7", KEY_NUM_7}, {"KP_8", KEY_NUM_8}, {"KP_9", KEY_NUM_9},
+        {"KP_0", KEY_NUM_0}, {"KP_DOT", KEY_NUM_PERIOD},
+    
         // Media keys
         {"MEDIA_NEXT_TRACK", KEY_MEDIA_NEXT_TRACK},
         {"MEDIA_PREVIOUS_TRACK", KEY_MEDIA_PREVIOUS_TRACK},
@@ -142,9 +142,9 @@ void DuckyEngine::processCommand(const std::string &line) {
     } 
     // Sends a single character keystroke
     else if (command == "SEND") {
-        char c;
+        uint8_t c;
         if (ss >> c) {
-            bleKeyboard.write(c);
+            sendKey(c); // Send the character as a key press
         }
     } 
     // Handles delay (can be absolute or modify global delay interval)
@@ -174,27 +174,20 @@ void DuckyEngine::processCommand(const std::string &line) {
     } 
     // Handles modifier key combinations and normal key presses
     else {
-        std::vector<std::string> keysToRelease;
-        bool isModifierLine = false;
-
         if (keyMap.find(command) != keyMap.end()) {
-            isModifierLine = isModifierKey(keyMap[command]);
-        }
-                
-        if (isModifierLine) {
-            do {
-                // Press all keys till the line ends
-                pressKey(command, false);
-                keysToRelease.push_back(command);
-            } while (ss >> command);
-
-            // Release all keys at once
-            for (std::string key : keysToRelease) {
-                releaseKey(key, false);
+            if (isModifierKey(keyMap[command])) {
+                handleModifierCombo(command, ss); // Handle modifier combo
+            } else {
+                sendKey(keyMap[command]); // Send the key press
             }
         } else {
-            pressKey(command, false);
-            releaseKey(command, false);
+            // Treat the entire line (including this word) as text to print
+            std::string remainder = command;
+            std::string word;
+            while (ss >> word) {
+                remainder += " " + word;
+            }
+            typeString(remainder); // Character-by-character typing
         }
     }
 }
@@ -224,6 +217,21 @@ std::string DuckyEngine::extractString(std::istringstream &ss) {
         std::getline(ss, text); // Read entire line as a normal string
     }
     return text;
+}
+
+// Handles modifier key combinations (e.g., CTRL+ALT+DEL)
+void DuckyEngine::handleModifierCombo(std::string key, std::istringstream &ss) {
+    std::vector<std::string> keysToRelease;
+    do {
+        // Press all keys till the line ends
+        pressKey(key, false);
+        keysToRelease.push_back(key);
+    } while (ss >> key);
+
+    // Release all keys at once
+    for (std::string key : keysToRelease) {
+        releaseKey(key, false);
+    }
 }
 
 // Presses a key and adds it to the active key list
@@ -267,6 +275,11 @@ void DuckyEngine::releaseKey(const std::string &key, bool allowModifiers) {
     }
 
     bleKeyboard.release(keyCode); // Send key release
+}
+
+// Sends a single character keystroke
+void DuckyEngine::sendKey(const uint8_t key) {
+    bleKeyboard.write(key);
 }
 
 // Types a string instantly
