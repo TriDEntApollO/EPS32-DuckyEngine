@@ -23,14 +23,31 @@ DuckyEngine::DuckyEngine(BleKeyboard &bleKeyboard) : bleKeyboard(bleKeyboard), i
 
 // Executes a given Ducky Script line by line
 void DuckyEngine::executeScript(const std::string &script) {
-    std::istringstream stream(script); // Convert script into a stream for reading line by line
+    std::istringstream stream(script); // Convert script into a stream for reading
     std::string line;
     activeKeys.clear();  // Reset pressed keys before execution
     activeModifiers.clear(); // Reset active modifiers before execution
 
+    std::string commandBuffer;
+    
     while (std::getline(stream, line)) { // Read each line
-        processCommand(line); // Process and execute the command
+        commandBuffer += line;
+        // Process command when encountering ';' or a newline
+        size_t pos;
+        while ((pos = commandBuffer.find(';')) != std::string::npos) {
+            std::string command = commandBuffer.substr(0, pos);
+            if (!command.empty()) {
+                processCommand(command);
+            }
+            commandBuffer.erase(0, pos + 1); // Remove processed command
+        }
+        // Process remaining command at end of the line
+        if (!commandBuffer.empty()) {
+            processCommand(commandBuffer);
+            commandBuffer.clear();
+        }
     }
+
     releaseAllKeys(); // Ensure all keys are released at the end
 }
 
