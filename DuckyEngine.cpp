@@ -1,6 +1,5 @@
-#include "DuckyEngine.h"
-
 #include <Arduino.h>
+#include "DuckyEngine.h"
 
 DuckyEngine::DuckyEngine(BleKeyboard &bleKeyboard) : bleKeyboard(bleKeyboard), intervalDelay(5) {
     keyMap = {
@@ -67,35 +66,37 @@ DuckyEngine::DuckyEngine(BleKeyboard &bleKeyboard) : bleKeyboard(bleKeyboard), i
         {"KP_0", KEY_NUM_0}, {"KP_DOT", KEY_NUM_PERIOD},
     };
 
-    // mediaKeyMap = {
-    //     // Media keys
-    //     {"MEDIA_PLAY", KEY_MEDIA_PLAY},
-    //     {"MEDIA_PAUSE", KEY_MEDIA_PAUSE},
-    //     {"MEDIA_STOP", KEY_MEDIA_STOP},
-    //     {"MEDIA_PLAY_PAUSE", KEY_MEDIA_PLAY_PAUSE},
-    //     {"MEDIA_NEXT_TRACK", KEY_MEDIA_NEXT_TRACK},
-    //     {"MEDIA_PREVIOUS_TRACK", KEY_MEDIA_PREVIOUS_TRACK},
-    //     {"MEDIA_MUTE", KEY_MEDIA_MUTE},
-    //     {"MEDIA_VOLUME_UP", KEY_MEDIA_VOLUME_UP},
-    //     {"MEDIA_VOLUME_DOWN", KEY_MEDIA_VOLUME_DOWN},
-    //     {"MEDIA_WWW_HOME", KEY_MEDIA_WWW_HOME},
-    //     {"MEDIA_LOCAL_MACHINE_BROWSER", KEY_MEDIA_LOCAL_MACHINE_BROWSER},
-    //     {"MEDIA_CALCULATOR", KEY_MEDIA_CALCULATOR},
-    //     {"MEDIA_WWW_BOOKMARKS", KEY_MEDIA_WWW_BOOKMARKS},
-    //     {"MEDIA_WWW_SEARCH", KEY_MEDIA_WWW_SEARCH},
-    //     {"MEDIA_WWW_STOP", KEY_MEDIA_WWW_STOP},
-    //     {"MEDIA_WWW_BACK", KEY_MEDIA_WWW_BACK},
-    //     {"MEDIA_CONSUMER_CONTROL_CONFIGURATION", KEY_MEDIA_CONSUMER_CONTROL_CONFIGURATION},
-    //     {"MEDIA_EMAIL_READER", KEY_MEDIA_EMAIL_READER}
-    // };
+    mediaKeyMap = {
+        // Media keys
+        {"MEDIA_PLAY", KEY_MEDIA_PLAY_PAUSE},
+        {"MEDIA_PAUSE", KEY_MEDIA_PLAY_PAUSE},
+        {"MEDIA_STOP", KEY_MEDIA_STOP},
+        {"MEDIA_PLAY_PAUSE", KEY_MEDIA_PLAY_PAUSE},
+        {"MEDIA_NEXT_TRACK", KEY_MEDIA_NEXT_TRACK},
+        {"MEDIA_PREVIOUS_TRACK", KEY_MEDIA_PREVIOUS_TRACK},
+        {"MEDIA_MUTE", KEY_MEDIA_MUTE},
+        {"MEDIA_VOLUME_UP", KEY_MEDIA_VOLUME_UP},
+        {"MEDIA_VOLUME_DOWN", KEY_MEDIA_VOLUME_DOWN},
+        {"MEDIA_WWW_HOME", KEY_MEDIA_WWW_HOME},
+        {"MEDIA_LOCAL_MACHINE_BROWSER", KEY_MEDIA_LOCAL_MACHINE_BROWSER},
+        {"MEDIA_CALCULATOR", KEY_MEDIA_CALCULATOR},
+        {"MEDIA_WWW_BOOKMARKS", KEY_MEDIA_WWW_BOOKMARKS},
+        {"MEDIA_WWW_SEARCH", KEY_MEDIA_WWW_SEARCH},
+        {"MEDIA_WWW_STOP", KEY_MEDIA_WWW_STOP},
+        {"MEDIA_WWW_BACK", KEY_MEDIA_WWW_BACK},
+        {"MEDIA_CONSUMER_CONTROL_CONFIGURATION", KEY_MEDIA_CONSUMER_CONTROL_CONFIGURATION},
+        {"MEDIA_EMAIL_READER", KEY_MEDIA_EMAIL_READER}
+    };
 }
 
 // Executes a given Ducky Script line by line
 void DuckyEngine::executeScript(const std::string &script) {
     std::istringstream stream(script); // Convert script into a stream for reading
     std::string line;
+    intervalDelay = 5; // Reset delay interval to default
     activeKeys.clear();  // Reset pressed keys before execution
     activeModifiers.clear(); // Reset active modifiers before execution
+    activeMediaKeys.clear(); // Reset active media keys before execution
 
     std::string commandBuffer;
     
@@ -239,76 +240,111 @@ void DuckyEngine::handleModifierCombo(std::string key, std::istringstream &ss) {
 }
 
 // Presses a key and adds it to the active key list
-void DuckyEngine::pressKey(const std::string &key, bool allowModifiers) {
-    // auto keyCode = getKey(key); // Get the key code from the map
-    uint8_t keyCode;
-    if (keyMap.find(key) != keyMap.end()) {
-        keyCode = keyMap[key];
-    } else {
-        keyCode = key[0];
+void DuckyEngine::pressKey(const std::string &key, bool allowLogs) {
+    DuckyKey duckyKey = getKey(key);
+    switch (duckyKey.type) {
+        case KeyType::Standard:
+            bleKeyboard.press(duckyKey.keyCode.standardKey); // Send standard key press
+            break;
+        case KeyType::Media:
+            bleKeyboard.press(duckyKey.keyCode.mediaKey); // Send media key press
+            break;
+        case KeyType::Modifier:
+            bleKeyboard.press(duckyKey.keyCode.modifierKey); // Send modifier key press
+            break;
+        default:
+            break;        
     }
 
-    // Store modifiers separately from regular keys
-    if (allowModifiers && isModifierKey(keyCode)) {
-        activeModifiers.push_back(keyCode);
-    } else {
-        activeKeys.push_back(keyCode);
+    // Log key presses if allowed
+    if (allowLogs) {
+        switch (duckyKey.type) {
+            case KeyType::Standard:
+                activeKeys.push_back(duckyKey.keyCode.standardKey);
+                break;
+            case KeyType::Media:
+                activeMediaKeys.push_back(duckyKey.keyCode.mediaKey);
+                break;
+            case KeyType::Modifier:
+                activeModifiers.push_back(duckyKey.keyCode.modifierKey);
+                break;
+            default:
+                break;
+        }
     }
-
-    bleKeyboard.press(keyCode); // Send key press
 }
 
 // Releases a specific key or all keys if "ALL" is specified
-void DuckyEngine::releaseKey(const std::string &key, bool allowModifiers) {
+void DuckyEngine::releaseKey(const std::string &key, bool allowLogs) {
     if (key == "ALL") {
         releaseAllKeys(); // Release everything
         return;
     }
 
-    // auto keyCode = getKey(key); // Get the key code from the map
-    uint8_t keyCode;
-    if (keyMap.find(key) != keyMap.end()) {
-        keyCode = keyMap[key];
-    } else {
-        keyCode = key[0];
+    DuckyKey duckyKey = getKey(key);
+    switch (duckyKey.type) {
+        case KeyType::Standard:
+            bleKeyboard.release(duckyKey.keyCode.standardKey); // Send standard key release
+            break;
+        case KeyType::Media:
+            bleKeyboard.release(duckyKey.keyCode.mediaKey); // Send media key release
+            break;
+        case KeyType::Modifier:
+            bleKeyboard.release(duckyKey.keyCode.modifierKey); // Send modifier key release
+            break;
+        default:
+            break;        
     }
 
-    // Remove key from active lists
-    if (allowModifiers && isModifierKey(keyCode)) {
-        removeModifier(keyCode);
-    } else {
-        removeKey(keyCode);
+    // Log key release if allowed
+    if (allowLogs) {
+        switch (duckyKey.type) {
+            case KeyType::Standard:
+                removeKey(duckyKey.keyCode.standardKey);
+                break;
+            case KeyType::Media:
+                removeMediaKey(duckyKey.keyCode.mediaKey);
+                break;
+            case KeyType::Modifier:
+                removeModifier(duckyKey.keyCode.modifierKey);
+                break;
+            default:
+                break;
+        }
     }
-
-    bleKeyboard.release(keyCode); // Send key release
 }
 
 // Sends a single character keystroke
 void DuckyEngine::sendKey(const std::string& key) {
-    // auto keyCode = getKey(key); // Get the key code from the map
-    uint8_t keyCode;
-    if (keyMap.find(key) != keyMap.end()) {
-        keyCode = keyMap[key];
-    } else {
-        keyCode = key[0];
+    DuckyKey duckyKey = getKey(key);
+    switch (duckyKey.type) {
+        case KeyType::Standard:
+            bleKeyboard.write(duckyKey.keyCode.standardKey); // Send standard key release
+            break;
+        case KeyType::Media:
+            bleKeyboard.write(duckyKey.keyCode.mediaKey); // Send media key release
+            break;
+        case KeyType::Modifier:
+            bleKeyboard.write(duckyKey.keyCode.modifierKey); // Send modifier key release
+            break;
+        default:
+            break;        
     }
-
-    bleKeyboard.write(keyCode);
 }
 
-std::variant<uint8_t, MediaKeyReport> DuckyEngine::getKey(const std::string& key) {
-    auto regularIt = keyMap.find(key);
-    if (regularIt != regularKeyMap.end()) {
-        return regularIt->second;
+DuckyKey DuckyEngine::getKey(const std::string& key) {
+    auto keyIt = keyMap.find(key);
+    if (keyIt != keyMap.end()) {
+        return DuckyKey(keyIt->second, isModifierKey(keyIt->second));
     }
 
     auto mediaIt = mediaKeyMap.find(key);
     if (mediaIt != mediaKeyMap.end()) {
-        return mediaIt->second;
+        return DuckyKey(mediaIt->second);
     }
 
     // Fallback: Return first character of the string as a normal key
-    return static_cast<uint8_t>(key.empty() ? 0 : key[0]);
+    return DuckyKey(key.empty() ? 0 : key[0]);
 }
 
 // Types a string instantly
@@ -339,24 +375,34 @@ bool DuckyEngine::isModifierKey(uint8_t keyCode) {
     );
 }
 
-// Removes a modifier key from activeModifiers
-void DuckyEngine::removeModifier(uint8_t keyCode) {
-    activeModifiers.erase(std::remove(activeModifiers.begin(), activeModifiers.end(), keyCode), activeModifiers.end());
-}
-
 // Removes a non-modifier key from activeKeys
 void DuckyEngine::removeKey(uint8_t keyCode) {
     activeKeys.erase(std::remove(activeKeys.begin(), activeKeys.end(), keyCode), activeKeys.end());
 }
 
+// Removes a media key from activeMediaKeys
+void DuckyEngine::removeMediaKey(const uint8_t* keyCode) {
+    activeMediaKeys.erase(std::remove(activeMediaKeys.begin(), activeMediaKeys.end(), keyCode), activeMediaKeys.end());
+}
+
+// Removes a modifier key from activeModifiers
+void DuckyEngine::removeModifier(uint8_t keyCode) {
+    activeModifiers.erase(std::remove(activeModifiers.begin(), activeModifiers.end(), keyCode), activeModifiers.end());
+}
+
 // Releases all currently active keys 
 void DuckyEngine::releaseAllKeys() {
-    for (uint8_t keyCode : activeModifiers) {
-        bleKeyboard.release(keyCode);
-    }
     for (uint8_t keyCode : activeKeys) {
         bleKeyboard.release(keyCode);
     }
+    for (const uint8_t* keyCode : activeMediaKeys) {
+        bleKeyboard.release(keyCode);
+    }
+    for (uint8_t keyCode : activeModifiers) {
+        bleKeyboard.release(keyCode);
+    }
+
     activeKeys.clear();
+    activeMediaKeys.clear();
     activeModifiers.clear();
 }
