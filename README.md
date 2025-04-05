@@ -73,21 +73,109 @@ void loop() {
 | `DELAY INTERVAL` | Sets delay between each cahrater for `PRINT` (in milliseconds) |
 
 ### 5️⃣ Available Keys
-| Key        | Description                                     |
-|------------|-------------------------------------------------|
-| `CTRL`     | Holds down the Control key                      |
-| `ALT`      | Holds down the Alt key                          |
-| `SHIFT`    | Holds down the Shift key                        |
-| `GUI`      | Holds down the Windows/Command key              |
-| `TAB`      | Presses the Tab key                             |
-| `ESC`      | Presses the Escape key                          |
-| `SPACE`    | Presses the Space key                           |
-| `BACKSPACE`| Presses the Backspace key                       |
-| `DELETE`   | Presses the Delete key                          |
-| `UP`       | Presses the Up Arrow key                        |
-| `DOWN`     | Presses the Down Arrow key                      |
-| `LEFT`     | Presses the Left Arrow key                      |
-| `RIGHT`    | Presses the Right Arrow key                     |
+
+#### Basic Keys
+| Basic Keys        | Description                       |
+|-------------|-----------------------------------|
+| `ENTER`     | Presses the Enter/Return key      |
+| `ESC`       | Presses the Escape key            |
+| `TAB`       | Presses the Tab key               |
+| `SPACE`     | Presses the Space key             |
+| `BACKSPACE` | Presses the Backspace key         |
+| `DELETE`    | Presses the Delete key            |
+
+#### Modifier Keys
+| Key           | Description                         |
+|---------------|-------------------------------------|
+| `CTRL`        | Holds down the Control key          |
+| `SHIFT`       | Holds down the Shift key            |
+| `ALT`         | Holds down the Alt key              |
+| `GUI`         | Holds down the Windows/Command key  |
+| `LEFT_CTRL`   | Holds down the Left Control key     |
+| `LEFT_SHIFT`  | Holds down the Left Shift key       |
+| `LEFT_ALT`    | Holds down the Left Alt key         |
+| `LEFT_GUI`    | Holds down the Left GUI key         |
+| `RIGHT_CTRL`  | Holds down the Right Control key    |
+| `RIGHT_SHIFT` | Holds down the Right Shift key      |
+| `RIGHT_ALT`   | Holds down the Right Alt key        |
+| `RIGHT_GUI`   | Holds down the Right GUI key        |
+
+#### Navigation Keys
+| Key         | Description                      |
+|-------------|----------------------------------|
+| `UP`        | Presses the Up Arrow key         |
+| `DOWN`      | Presses the Down Arrow key       |
+| `LEFT`      | Presses the Left Arrow key       |
+| `RIGHT`     | Presses the Right Arrow key      |
+| `INSERT`    | Presses the Insert key           |
+| `HOME`      | Presses the Home key             |
+| `END`       | Presses the End key              |
+| `PAGE_UP`   | Presses the Page Up key          |
+| `PAGE_DOWN` | Presses the Page Down key        |
+
+#### Function Keys
+| Key          | Description                           |
+|--------------|---------------------------------------|
+| `F1 to F24`  | Presses Function keys F1 through F24  |
+
+
+#### Alphanumeric Cluster
+| Key         | Description                      |
+|-------------|----------------------------------|
+| `CAPS_LOCK` | Presses the Caps Lock key        |
+| `MENU`      | Presses the Menu key             |
+
+#### Function Control Cluster
+| Key            | Description                    |
+|----------------|--------------------------------|
+| `PRINT_SCREEN` | Presses the Print Screen key   |
+| `SCROLL_LOCK`  | Presses the Scroll Lock key    |
+| `PAUSE`        | Presses the Pause key          |
+
+#### Keypad Keys
+| Key           | Description                         |
+|---------------|-------------------------------------|
+| `NUM_LOCK`    | Presses the Num Lock key            |
+| `KP_SLASH`    | Presses the Numpad Slash key        |
+| `KP_ASTERISK` | Presses the Numpad Asterisk key     |
+| `KP_MINUS`    | Presses the Numpad Minus key        |
+| `KP_PLUS`     | Presses the Numpad Plus key         |
+| `KP_ENTER`    | Presses the Numpad Enter key        |
+| `KP_1`        | Presses the Numpad 1 key            |
+| `KP_2`        | Presses the Numpad 2 key            |
+| `KP_3`        | Presses the Numpad 3 key            |
+| `KP_4`        | Presses the Numpad 4 key            |
+| `KP_5`        | Presses the Numpad 5 key            |
+| `KP_6`        | Presses the Numpad 6 key            |
+| `KP_7`        | Presses the Numpad 7 key            |
+| `KP_8`        | Presses the Numpad 8 key            |
+| `KP_9`        | Presses the Numpad 9 key            |
+| `KP_0`        | Presses the Numpad 0 key            |
+| `KP_DOT`      | Presses the Numpad Decimal key      |
+
+#### Media Keys
+| Key                                    | Description                          |
+|----------------------------------------|--------------------------------------|
+| `MEDIA_PLAY`                           | Toggles play/pause                   |
+| `MEDIA_PAUSE`                          | Toggles play/pause                   |
+| `MEDIA_STOP`                           | Stops media playback                 |
+| `MEDIA_PLAY_PAUSE`                     | Toggles play/pause                   |
+| `MEDIA_NEXT_TRACK`                     | Skips to next track                  |
+| `MEDIA_PREVIOUS_TRACK`                 | Returns to previous track            |
+| `MEDIA_MUTE`                           | Toggles mute                         |
+| `MEDIA_VOLUME_UP`                      | Increases volume                     |
+| `MEDIA_VOLUME_DOWN`                    | Decreases volume                     |
+| `MEDIA_WWW_HOME`                       | Opens web browser home               |
+| `MEDIA_LOCAL_MACHINE_BROWSER`          | Opens local browser                  |
+| `MEDIA_CALCULATOR`                     | Opens calculator                     |
+| `MEDIA_WWW_BOOKMARKS`                  | Opens bookmarks                      |
+| `MEDIA_WWW_SEARCH`                     | Opens web search                     |
+| `MEDIA_WWW_STOP`                       | Stops web page load                  |
+| `MEDIA_WWW_BACK`                       | Navigates back in browser            |
+| `MEDIA_CONSUMER_CONTROL_CONFIGURATION` | Opens consumer control settings      |
+| `MEDIA_EMAIL_READER`                   | Opens email client                   |
+
+
 
 ## Credits
 This project is built upon **T-vK's [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)** library, which handles the BLE keyboard functionality.
