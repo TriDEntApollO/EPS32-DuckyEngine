@@ -61,16 +61,17 @@ void loop() {
 ```
 
 ### 4️⃣ Available Ducky Commands
-| Command          | Description                                                    |
-|------------------|----------------------------------------------------------------|
-| `PRESS`          | Presses a specified key without releasing it                   |
-| `RELEASE`        | Releases a specified key or all keys                           |
-| `RELEASE ALL`    | Releases all currently held keys                               |
-| `STRING`         | Types a string instantly                                       |
-| `PRINT`          | Types a string with a per-character delay                      |
-| `ENTER`          | Presses the Enter key                                          |
-| `DELAY`          | Waits for a specified time (in milliseconds)                   |
-| `DELAY INTERVAL` | Sets delay between each cahrater for `PRINT` (in milliseconds) |
+| Command          | Description                                                                     |
+|------------------|---------------------------------------------------------------------------------|
+| `PRESS`          | Presses a specified key without releasing it                                    |
+| `RELEASE`        | Releases a specified key or all keys                                            |
+| `RELEASE ALL`    | Releases all currently held keys                                                |
+| `STRING`         | Types a string instantly                                                        |
+| `PRINT`          | Types a string with a per-character delay                                       |
+| `ENTER`          | Presses the Enter key                                                           |
+| `DELAY`          | Waits for a specified time (in milliseconds)                                    |
+| `DELAY INTERVAL` | Sets delay between each cahrater for `PRINT` (in milliseconds)                  |
+| `;`              | Indicates end of a command for 1 line scripts (Eg: ECHO "hi"; DELAY 100; ENTER) |
 
 ### 5️⃣ Available Keys
 
